@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأیید کد OTP</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>تأیید کد OTP</h1>
+    
+    <!-- فرم شماره تلفن -->
+    <form id="phoneForm" action="/send-otp/" method="POST">
+        <label for="phone">شماره تلفن:</label>
+        <input type="text" id="phone" name="phone" required>
+        <button type="submit">ارسال کد OTP</button>
+    </form>
+
+    <!-- فرم تأیید کد OTP -->
+    <form id="otpVerification" class="hidden" action="/api/" method="POST">
+        <label for="code">کد تأیید:</label>
+        <input type="text" id="code" name="code" required>
+        <input type="hidden" id="phoneHidden" name="phone"> <!-- شماره تلفن مخفی -->
+        <button type="submit">تأیید کد</button>
+    </form>
+
+    <script>
+        // وقتی شماره تلفن ارسال می‌شود، فرم تأیید کد را نمایش می‌دهیم
+        document.getElementById('phoneForm').onsubmit = async function(event) {
+            const phone = document.getElementById('phone').value;
+
+            // بررسی اینکه شماره تلفن وارد شده است
+            if (!phone) {
+                alert('لطفاً شماره تلفن را وارد کنید.');
+                event.preventDefault(); // جلوگیری از ارسال فرم
+                return;
+            }
+
+            // نمایش فرم تأیید کد
+            document.getElementById('phoneForm').classList.add('hidden');
+            document.getElementById('otpVerification').classList.remove('hidden');
+            document.getElementById('phoneHidden').value = phone; // ذخیره شماره تلفن در فرم تأیید
+            event.preventDefault(); // جلوگیری از ارسال فرم
+        };
+    </script>
+</body>
+</html>
