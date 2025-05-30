@@ -21,7 +21,5 @@ urlpatterns = [
     
     path('user', UserView.as_view(), name='user'),
     path('role', RoleView.as_view(), name='role'),
-    path('city', CityView.as_view(), name='city'),
-    path('company', CompanyView.as_view(), name='company'),
 
 ]

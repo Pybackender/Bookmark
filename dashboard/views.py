@@ -1,27 +1,17 @@
 from rest_framework.authentication import BasicAuthentication
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.decorators import permission_classes
 from django.contrib.auth.models import update_last_login
 from rest_framework.exceptions import PermissionDenied
-from django.views.decorators.csrf import csrf_protect
-from rest_framework import generics, viewsets, status
-from django.contrib.sites.models import Site
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import JsonResponse
-from django.db.models import F
 from django.utils import timezone
-
-
 import datetime
 import re
-
-from .functions import create_hash_token, create_otp_code, CsrfExemptSessionAuthentication, get_user_info, check_user_is_active
-from .serializers import CompanySerializer, RoleSerializer, CitySerializer
+from .functions import create_hash_token, create_otp_code, CsrfExemptSessionAuthentication, get_user_info
+from .serializers import RoleSerializer
 from .authentication import create_refresh_token, get_user_by_token, set_cookie_for_user
 from .permissions import AllowAnyUser, IsAuthenticatedUser
-from .models import OtpCode, User, Company, Role, City
-from .paginations import PageNumberAsLimitOffset
+from .models import OtpCode, User, Role
 
 
 # ? First step of login check phone number
@@ -101,37 +91,12 @@ class AuthenticatedView(APIView):
             return Response({'detail': 'نقش وارد شده صحیح نیست', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
         fullname = request.data.get('fullname')
-        city = request.data.get('city')
 
         if not fullname:
             return Response({'detail': 'لطفا نام را وارد کنید', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
         if 2 >= len(fullname) or len(fullname) > 50:
             return Response({'detail': 'نام وارد شده باید بیشتر از 2 کاراکتر باشد', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not city:
-            return Response({'detail': 'لطفا شهر را وارد کنید', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-        city = City.objects.filter(id=city).first()
-        if not city:
-            return Response({'detail': 'شهر وارد شده معتبر نیست', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-        get_company = request.data.get('company_name')
-        # Real_estate(daftarAmlak) / advisor(moshaverAmlak)
-        if role.id == 3 or role.id == 4:
-            if not get_company:
-                return Response({'detail': 'لطفا نام شرکت را وارد کنید', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-        if role.id == 3:  # advisor
-            company_instance = Company.objects.filter(id=get_company).first()
-            if not company_instance:
-                return Response({'detail': 'شرکت وارد شده معتبر نیست', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-            if company_instance.status == 0:
-                return Response({'detail': 'شرکت وارد شده فعال نیست', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-        if role.id == 6 or role.id == 5:  # Free_advisor, owner
-            company_instance = None
 
         # Create hash code for phone number
         hash_code = create_hash_token()
@@ -155,8 +120,6 @@ class VerifyCodeView(APIView):
         phone = request.data.get('phone')
         fullname = request.data.get('fullname')
         role = request.data.get('role')
-        city = request.data.get('city')
-        company = request.data.get('company_name')
         token = request.data.get('token')
         code = request.data.get('code')
         # 333
@@ -165,7 +128,6 @@ class VerifyCodeView(APIView):
         code = request.data.get('code')  # test code
 
         role = Role.objects.filter(id=role).first()
-        city = City.objects.filter(id=city).first()
 
         print(f"Phone: {phone}, Token: {token}, Code: {code}")  # test
         if not phone:
@@ -188,7 +150,7 @@ class VerifyCodeView(APIView):
                 check_code.delete()
                 update_last_login(None, user)
                 refresh_token = create_refresh_token(
-                    user.id, user.fullname, user.role.id, user.phone, user.city.name)
+                    user.id, user.fullname, user.role.id, user.phone)
                 response = set_cookie_for_user(request, refresh_token)
                 response.data = {
                     'detail': 'یوزر با موفقیت وارد شد',
@@ -204,9 +166,6 @@ class VerifyCodeView(APIView):
         if not role:
             return Response({'detail': 'لطفا نقش را وارد کنید', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not city:
-            return Response({'detail': 'لطفا شهر را وارد کنید', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
         expire_date = check_code.request_date
         expire_date = expire_date + datetime.timedelta(minutes=2)
 
@@ -219,27 +178,11 @@ class VerifyCodeView(APIView):
                 phone=phone,
                 fullname=fullname,
                 role=role,
-                city=city
             )
             check_code.delete()
 
-            if role.id == 4:  # Real_estate/ daftarAmlak
-                company = Company.objects.create(
-                    name=company,
-                    owner=user
-                )
-                user.company_name = company
-                user.status = 0
-                user.save()
-
-            if role.id == 3:  # Advisor
-                company_instance = Company.objects.filter(id=company).first()
-                user.company_name = company_instance
-                user.status = 0
-                user.save()
-
             refresh_token = create_refresh_token(
-                user.id, fullname, role.id, phone, city.name)
+                user.id, fullname, role.id, phone)
             response = set_cookie_for_user(request, refresh_token)
             response.data = {
                 'message': 'ثبت نام با موفقیت انجام شد',
@@ -279,10 +222,10 @@ class CheckPasswordView(APIView):
         update_last_login(None, user)
         if user.role.id == 1:
             refresh_token = create_refresh_token(
-                user.id, user.fullname, user.role.id, user.phone, user.city)
+                user.id, user.fullname, user.role.id, user.phone)
         else:
             refresh_token = create_refresh_token(
-                user.id, user.fullname, user.role.id, user.phone, user.city.name)
+                user.id, user.fullname, user.role.id, user.phone)
 
         # No need to decode refresh_token if it's already a string
         response = set_cookie_for_user(request, refresh_token)
@@ -379,49 +322,4 @@ class RoleView(APIView):
     def get(self, request):
         roles = Role.objects.all()
         serializer = RoleSerializer(roles, many=True)
-        return Response(serializer.data)
-
-
-# ? city user
-class CityView(APIView):
-    """
-            show all cities for user
-    """
-    permission_classes = [AllowAnyUser]
-    authentication_classes = (
-        CsrfExemptSessionAuthentication, BasicAuthentication)
-
-    def get(self, request):
-        cities = City.objects.all()
-        # show province object in city
-
-        category = request.query_params.get('category')
-        if category:
-            # filter city by category
-            get_category = Category.objects.filter(id=category)
-            cities = get_category.values_list('city', flat=True)
-            cities = City.objects.filter(id__in=cities)
-
-        serializer = CitySerializer(cities, many=True)
-
-        return Response(serializer.data)
-
-
-# ? company user
-class CompanyView(generics.ListAPIView):
-    """
-            show all companies for real estate
-            show all companies for user and filter by status
-    """
-    permission_classes = [AllowAnyUser]
-    authentication_classes = (
-        CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = CompanySerializer
-
-    def get(self, request):
-        queryset = Company.objects.all()
-        status = request.query_params.get('status')
-        if status:
-            queryset = queryset.filter(status=status)
-        serializer = CompanySerializer(queryset, many=True)
         return Response(serializer.data)

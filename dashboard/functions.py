@@ -73,24 +73,9 @@ def get_user_info(user):
         "display_name": user.role.display_name,
     }
     if user.role.id == 1:
-        city = None
-    else:
-        city = {
-            'id': user.city.id,
-            'name': user.city.name,
-        }
-
-    roles = [1, 2, 5, 6]
+        roles = [1, 2, 5, 6]
     if user.role.id in roles:
-        company_name = ""
-    else:
-        company_name = {
-            'id': user.company_name.id,
-            'name': user.company_name.name,
-            'username': user.company_name.owner.fullname,
-            'phone': user.company_name.owner.phone,
-        }
-
+        pass
     # get avatar
     avatar = user.avatar
 
@@ -106,20 +91,15 @@ def get_user_info(user):
     else:
         has_password = False
 
-    order_count = Order.objects.filter(user=user).count()
-
     data = {
         'id': user.id,
         'fullname': user.fullname,
         'phone': user.phone,
         'role': role,
-        'city': city,
-        'company_name': company_name,
         'avatar': avatar,
         'user_meta': data,
         'has_password': has_password,
         'status': status,
-        'order_count': order_count,
     }
     return data
 

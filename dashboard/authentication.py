@@ -1,18 +1,14 @@
-from django.contrib.sites.models import Site
 from rest_framework.response import Response
 from rest_framework import exceptions
-
 import jwt, datetime
-
 from .models import User
 
  
 
 #? Create token
-def create_refresh_token(id, fullname, role, phone, city):
+def create_refresh_token(id, fullname, role, phone):
     return jwt.encode({
 		'phone': phone,
-		'city': city,
         'user_id': id,
         'fullname': fullname,
         'role': role,
