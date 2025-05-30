@@ -1,17 +1,3 @@
-# from django.urls import path
-# from .views import DashboardView, VerifyCodeView
-# # from django.views.generic import TemplateView
-# from .views import VerifyCodeView
-
-
-# urlpatterns = [
-#     path('', DashboardView.as_view(), name='dashboard'),
-#     path('otp-form/', VerifyCodeView.as_view(), name='otp_form'),
-#     path('verify-code/', VerifyCodeView.as_view(), name='verify_code'),
-# ]
-
-
-
 from django.urls import path, include
 from rest_framework import routers
 

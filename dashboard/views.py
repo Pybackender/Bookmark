@@ -1,74 +1,3 @@
-# from django.views.generic import TemplateView
-# from django.http import JsonResponse
-# from .utils import send_otp_code
-# import json
-# from django.views import View
-# import random
-# from datetime import timedelta
-# from django.shortcuts import render
-# from django.utils import timezone
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status
-# from .models import User, OtpCode
-# from .utils import send_otp_code  # تابع ارسال پیامک
-# from rest_framework.permissions import IsAuthenticated
-
-
-# class CheckPhoneView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         phone = request.data.get('phone')
-#         if not phone:
-#             return Response({'detail': 'لطفا شماره تماس را وارد کنید.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         user, created = User.objects.get_or_create(phone=phone)
-#         otp_code = str(random.randint(100000, 999999))
-#         OtpCode.objects.create(phone=phone, code=otp_code)
-
-#         # Print the OTP code to the terminal
-#         print(f"Generated OTP for {phone}: {otp_code}")
-
-#         # تابع ارسال OTP به شماره تلفن
-#         send_otp_code(phone, otp_code)
-
-#         return Response({'detail': 'کد تایید برای شما ارسال شد.'}, status=status.HTTP_200_OK)
-
-
-# class VerifyCodeView(View):
-#     otp_storage = {}
-
-#     def post(self, request):
-#         data = json.loads(request.body)
-#         phone = data.get('phone')
-#         code = data.get('code')
-
-#         if phone in self.otp_storage and self.otp_storage[phone] == code:
-#             return JsonResponse({'message': 'کد تأیید موفقیت‌آمیز بود!'}, status=200)
-#         else:
-#             return JsonResponse({'detail': 'کد تأیید نادرست است!'}, status=400)
-
-#     def get(self, request):
-#         # Generate a 4-digit OTP code
-#         otp_code = ''.join(random.choices('0123456789', k=4))
-
-#         # Print the OTP code to the terminal
-#         print(f"Generated OTP: {otp_code}")
-
-#         # Optionally, store the OTP code for verification
-#         # Assuming phone is passed as a query parameter
-#         phone = request.GET.get('phone')
-#         if phone:
-#             self.otp_storage[phone] = otp_code
-
-#         return render(request, 'otp_form.html')
-
-
-# class DashboardView(TemplateView):
-#     template_name = 'dashboard.html'
-# 3
-
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import permission_classes
@@ -231,14 +160,14 @@ class VerifyCodeView(APIView):
         token = request.data.get('token')
         code = request.data.get('code')
         # 333
-        phone = request.data.get('phone') #test phone
-        token = request.data.get('token') #test token
-        code = request.data.get('code') #test code
+        phone = request.data.get('phone')  # test phone
+        token = request.data.get('token')  # test token
+        code = request.data.get('code')  # test code
 
         role = Role.objects.filter(id=role).first()
         city = City.objects.filter(id=city).first()
 
-        print(f"Phone: {phone}, Token: {token}, Code: {code}") # test 
+        print(f"Phone: {phone}, Token: {token}, Code: {code}")  # test
         if not phone:
             return Response({'detail': 'لطفا شماره تلفن را وارد کنید', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -319,46 +248,6 @@ class VerifyCodeView(APIView):
             return response
 
         return Response({'detail': 'کد تایید نامعتبر است', 'status': status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# #? Check Password
-# class CheckPasswordView(APIView):
-# 	"""
-# 		check password if user save password
-# 	"""
-# 	permission_classes = [AllowAnyUser]
-# 	authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
-# 	def post(self, request):
-# 		phone = request.data.get('phone')
-# 		password = request.data.get('password')
-
-# 		if not phone:
-# 			return Response({'detail': 'لطفا شماره تلفن را وارد کنید', 'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-# 		if not password:
-# 			return Response({'detail': 'لطفا رمز عبور را وارد کنید', 'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-# 		user = User.objects.filter(phone=phone).first()
-# 		if not user:
-# 			return Response({'detail': 'کاربری با این شماره وجود ندارد', 'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-# 		if not user.check_password(password):
-# 			return Response({'detail': 'رمز عبور اشتباه است', 'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-
-# 		if user.check_password(password):
-# 			update_last_login(None, user)
-# 			if user.role.id == 1:
-# 				refresh_token = create_refresh_token(user.id, user.fullname, user.role.id, user.phone, user.city)
-# 			else:
-# 				refresh_token = create_refresh_token(user.id, user.fullname, user.role.id, user.phone, user.city.name)
-# 			refresh_token = refresh_token.decode('utf-8')
-# 			response = set_cookie_for_user(request, refresh_token)
-# 			response.data = {
-# 				'detail': 'یوزر با موفقیت وارد شد',
-# 				'status':status.HTTP_200_OK,
-# 			}
-# 			return response
 
 
 class CheckPasswordView(APIView):

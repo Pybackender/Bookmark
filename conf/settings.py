@@ -143,16 +143,4 @@ LOGGING = {
     },
 }
 
-# Kavenegar API Key
-# Kavenegar_API = os.getenv('KAVENEGAR_API', 'your-default-api-key')  # Change this in production
-
-# Custom User Model
-# AUTH_USER_MODEL = 'dashboard.User'
-
 SITE_ID = 1  # Default site ID
-
-# CSRF_TRUSTED_ORIGINS = [
-#     'http://localhost:8000',  # آدرس محلی
-#     'http://127.0.0.1:8000',  # آدرس محلی
-#     'chrome-extension://eejfoncpjfgmeleakejdcanedmefagga'  # آدرس افزونه
-# ]

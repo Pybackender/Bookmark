@@ -1,18 +1,3 @@
-# from django.db import models
-
-# class User(models.Model):
-#     phone = models.CharField(max_length=11, unique=True)
-
-#     def __str__(self):
-#         return self.phone
-
-# class OtpCode(models.Model):
-#     phone = models.CharField(max_length=11)
-#     code = models.CharField(max_length=6)
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.phone}: {self.code}"
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.contrib.sessions.models import Session
 from django.db.models.signals import post_save
